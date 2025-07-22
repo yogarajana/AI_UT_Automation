@@ -4,6 +4,7 @@ import java.util.Scanner;
 
 public class Calculate {
 
+	
     public static double add(double a, double b) {
         return a + b;
     }
