@@ -28,7 +28,7 @@ jobs:
     - name: Detect changed Java files
       id: changes
       run: |
-        git fetch origin main
+        git fetch origin test_loc
         CHANGED=$(git diff --name-only origin/test_loc | grep 'Test_automation/src/.*\.java$' || true)
         echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
