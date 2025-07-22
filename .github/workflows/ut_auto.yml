@@ -29,19 +29,19 @@ jobs:
       id: changes
       run: |
         git fetch origin main
-        CHANGED=$(git diff --name-only origin/main | grep 'src/.*\.java$' || true)
+        CHANGED=$(git diff --name-only origin/test_loc | grep 'Test_automation/src/.*\.java$' || true)
         echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
     - name: Generate missing test files with EvoSuite
       run: |
-        mkdir -p src/test/java
+        mkdir -p Test_automation/src/test/java
         for file in ${{ steps.changes.outputs.changed_files }}; do
-          CLASS_PATH=$(echo "$file" | sed 's|src/||')
+          CLASS_PATH=$(echo "$file" | sed 's|Test_automation/src/||')
           CLASS_NAME=$(echo "$CLASS_PATH" | sed 's|/|.|g' | sed 's|.java||')
-          TEST_FILE="src/test/java/$(echo "$CLASS_PATH" | sed 's|.java|Test.java|')"
+          TEST_FILE="Test_automation/src/test/java/$(echo "$CLASS_PATH" | sed 's|.java|Test.java|')"
           if [ ! -f "$TEST_FILE" ]; then
             echo "Generating test for $CLASS_NAME"
-            java -jar tools/evosuite-1.2.0.jar -class $CLASS_NAME -projectCP bin -Dtest_dir=src/test/java
+            java -jar Test_automation/tools/evosuite-1.2.0.jar -class $CLASS_NAME -projectCP bin -Dtest_dir=Test_automation/src/test/java
           else
             echo "Test already exists for $CLASS_NAME"
           fi
@@ -49,31 +49,31 @@ jobs:
 
     - name: Compile test classes
       run: |
-        find src/test/java -name "*.java" > test_sources.txt
-        javac -cp "bin:tools/junit-4.13.2.jar:tools/hamcrest-core-2.2.jar:tools/hamcrest-2.2.jar" -d bin @test_sources.txt
+        find Test_automation/src/test/java -name "*.java" > test_sources.txt
+        javac -cp "Test_automation/bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar:tools/hamcrest-2.2.jar" -d Test_automation/bin @test_sources.txt
 
     - name: Run tests with JaCoCo agent
       run: |
-        TEST_CLASSES=$(find src/test/java -name "*Test.java" | sed 's|src/test/java/||' | sed 's|/|.|g' | sed 's|.java||')
+        TEST_CLASSES=$(find Test_automation/src/test/java -name "*Test.java" | sed 's|Test_automation/src/test/java/||' | sed 's|/|.|g' | sed 's|.java||')
         for test in $TEST_CLASSES; do
-          java -javaagent:tools/jacocoagent.jar=destfile=jacoco.exec \
-            -cp "bin:tools/junit-4.13.2.jar:tools/hamcrest-core-2.2.jar" \
+          java -javaagent:Test_automation/tools/jacocoagent.jar=destfile=jacoco.exec \
+            -cp "Test_automation/bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar" \
             org.junit.runner.JUnitCore $test || true
         done
 
     - name: Generate coverage report
       run: |
         mkdir -p report
-        java -jar tools/jacococli.jar report jacoco.exec \
-          --classfiles bin \
-          --sourcefiles src \
-          --html report \
-          --xml report/report.xml
+        java -jar Test_automation/tools/jacococli.jar report jacoco.exec \
+          --classfiles Test_automation/bin \
+          --sourcefiles Test_automation/src \
+          --html Test_automation/report \
+          --xml Test_automation/report/report.xml
 
     - name: Enforce 95% coverage threshold
       run: |
-        MISSED=$(grep -oPm1 "(?<=missed=\")[0-9]+" report/report.xml)
-        COVERED=$(grep -oPm1 "(?<=covered=\")[0-9]+" report/report.xml)
+        MISSED=$(grep -oPm1 "(?<=missed=\")[0-9]+" Test_automationreport/report.xml)
+        COVERED=$(grep -oPm1 "(?<=covered=\")[0-9]+" Test_automation/report/report.xml)
         TOTAL=$((MISSED + COVERED))
         PERCENT=$(echo "scale=2; $COVERED*100/$TOTAL" | bc)
         echo "Coverage: $PERCENT%"
