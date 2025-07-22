@@ -1,0 +1,81 @@
+name: AI Test & Coverage Check
+on:
+  pull_request:
+    paths:
+      - 'src/**.java'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+
+    - name: Compile source code
+      run: |
+        mkdir -p bin
+        find src -name "*.java" > sources.txt
+        javac -d bin @sources.txt
+
+    - name: Detect changed Java files
+      id: changes
+      run: |
+        git fetch origin main
+        CHANGED=$(git diff --name-only origin/main | grep 'src/.*\.java$' || true)
+        echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
+
+    - name: Generate missing test files with EvoSuite
+      run: |
+        mkdir -p src/test/java
+        for file in ${{ steps.changes.outputs.changed_files }}; do
+          CLASS_PATH=$(echo "$file" | sed 's|src/||')
+          CLASS_NAME=$(echo "$CLASS_PATH" | sed 's|/|.|g' | sed 's|.java||')
+          TEST_FILE="src/test/java/$(echo "$CLASS_PATH" | sed 's|.java|Test.java|')"
+          if [ ! -f "$TEST_FILE" ]; then
+            echo "Generating test for $CLASS_NAME"
+            java -jar tools/evosuite-1.2.0.jar -class $CLASS_NAME -projectCP bin -Dtest_dir=src/test/java
+          else
+            echo "Test already exists for $CLASS_NAME"
+          fi
+        done
+
+    - name: Compile test classes
+      run: |
+        find src/test/java -name "*.java" > test_sources.txt
+        javac -cp "bin:tools/junit-4.13.2.jar:tools/hamcrest-core-2.2.jar:tools/hamcrest-2.2.jar" -d bin @test_sources.txt
+
+    - name: Run tests with JaCoCo agent
+      run: |
+        TEST_CLASSES=$(find src/test/java -name "*Test.java" | sed 's|src/test/java/||' | sed 's|/|.|g' | sed 's|.java||')
+        for test in $TEST_CLASSES; do
+          java -javaagent:tools/jacocoagent.jar=destfile=jacoco.exec \
+            -cp "bin:tools/junit-4.13.2.jar:tools/hamcrest-core-2.2.jar" \
+            org.junit.runner.JUnitCore $test || true
+        done
+
+    - name: Generate coverage report
+      run: |
+        mkdir -p report
+        java -jar tools/jacococli.jar report jacoco.exec \
+          --classfiles bin \
+          --sourcefiles src \
+          --html report \
+          --xml report/report.xml
+
+    - name: Enforce 95% coverage threshold
+      run: |
+        MISSED=$(grep -oPm1 "(?<=missed=\")[0-9]+" report/report.xml)
+        COVERED=$(grep -oPm1 "(?<=covered=\")[0-9]+" report/report.xml)
+        TOTAL=$((MISSED + COVERED))
+        PERCENT=$(echo "scale=2; $COVERED*100/$TOTAL" | bc)
+        echo "Coverage: $PERCENT%"
+        if (( $(echo "$PERCENT < 95" | bc -l) )); then
+          echo "Test coverage $PERCENT% is below threshold."
+          exit 1
+        fi
