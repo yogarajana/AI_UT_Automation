@@ -22,7 +22,7 @@ jobs:
     - name: Compile source code
       run: |
         mkdir -p bin
-        find src -name "*.java" > sources.txt
+        find Test_automation/src -name "*.java" > sources.txt
         javac -d bin @sources.txt
 
     - name: Detect changed Java files
