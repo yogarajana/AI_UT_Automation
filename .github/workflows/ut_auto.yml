@@ -49,10 +49,9 @@ jobs:
 
     - name: Compile test classes
       run: |
-        mkdir -p Test_automation/bin
         find Test_automation/src/test/java -name "*.java" > test_sources.txt
         cat test_sources.txt
-        javac -cp "Test_automation/bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar:tools/hamcrest-2.2.jar" -d Test_automation/bin @test_sources.txt
+        javac -cp "bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar:tools/hamcrest-2.2.jar" -d Test_automation/bin @test_sources.txt
 
     - name: Run tests with JaCoCo agent
       run: |
