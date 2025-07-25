@@ -4,20 +4,19 @@ import java.util.Scanner;
 
 public class Calculate {
 
-	
-    public static double add(double a, double b) {
+    public double add(double a, double b) {
         return a + b;
     }
 
-    public static double subtract(double a, double b) {
+    public  double subtract(double a, double b) {
         return a - b;
     }
 
-    public static double multiply(double a, double b) {
+    public  double multiply(double a, double b) {
         return a * b;
     }
 
-    public static double divide(double a, double b) {
+    public  double divide(double a, double b) {
         if (b == 0) {
             System.out.println("Error: Division by zero!");
             return Double.NaN;
@@ -26,6 +25,7 @@ public class Calculate {
     }
 
     public static void main(String[] args) {
+    	Calculate calc = new Calculate();
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Simple Calculator");
@@ -42,16 +42,16 @@ public class Calculate {
 
         switch (operator) {
             case '+':
-                result = add(num1, num2);
+                result = calc.add(num1, num2);
                 break;
             case '-':
-                result = subtract(num1, num2);
+                result = calc.subtract(num1, num2);
                 break;
             case '*':
-                result = multiply(num1, num2);
+                result = calc.multiply(num1, num2);
                 break;
             case '/':
-                result = divide(num1, num2);
+                result = calc.divide(num1, num2);
                 break;
            default:
                 System.out.println("Invalid operator!");
