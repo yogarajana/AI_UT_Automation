@@ -30,7 +30,7 @@ jobs:
       run: |
         git fetch origin pr2
         echo "working branch: $GITHUB_REF"
-        CHANGED=$(git diff --name-only origin/pr2 | grep 'Test_automation/src/.*\.java$' || true)
+        CHANGED=$(git diff --name-only origin/test_loc...pr2 | grep 'Test_automation/src/.*\.java$' || true)
         echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
     - name: Generate missing test files with EvoSuite
