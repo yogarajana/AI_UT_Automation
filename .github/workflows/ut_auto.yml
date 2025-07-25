@@ -49,18 +49,29 @@ jobs:
 
     - name: Compile test classes
       run: |
-        find Test_automation/src/test/java -name "*.java" > test_sources.txt
-        cat test_sources.txt
-        javac -cp "bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar:tools/hamcrest-2.2.jar" -d bin @test_sources.txt
+        if find Test_automation/src/test/java -name "*.java" > test_sources.txt && [ -s test_sources.txt ]; then
+          echo "Found test files to compile:"
+          cat test_sources.txt
+          javac -cp "bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar:Test_automation/tools/hamcrest-2.2.jar" -d bin @test_sources.txt
+        else
+          echo "No test files found. Creating empty file to avoid compilation error."
+          touch test_sources.txt
+          echo "WARNING: No test files were generated. Skipping compilation."
+        fi
 
     - name: Run tests with JaCoCo agent
       run: |
-        TEST_CLASSES=$(find Test_automation/src/test/java -name "*Test.java" | sed 's|Test_automation/src/test/java/||' | sed 's|/|.|g' | sed 's|.java||')
-        for test in $TEST_CLASSES; do
-          java -javaagent:Test_automation/tools/jacocoagent.jar=destfile=jacoco.exec \
-            -cp "Test_automation/bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar" \
-            org.junit.runner.JUnitCore $test || true
-        done
+        if [ -s test_sources.txt ]; then
+          TEST_CLASSES=$(find Test_automation/src/test/java -name "*Test.java" | sed 's|Test_automation/src/test/java/||' | sed 's|/|.|g' | sed 's|.java||')
+          for test in $TEST_CLASSES; do
+            java -javaagent:Test_automation/tools/jacocoagent.jar=destfile=jacoco.exec \
+              -cp "bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar" \
+              org.junit.runner.JUnitCore $test || true
+          done
+        else
+          echo "No test classes found to run."
+          exit 1
+        fi
 
     - name: Generate coverage report
       run: |
@@ -73,7 +84,7 @@ jobs:
 
     - name: Enforce 95% coverage threshold
       run: |
-        MISSED=$(grep -oPm1 "(?<=missed=\")[0-9]+" Test_automationreport/report.xml)
+        MISSED=$(grep -oPm1 "(?<=missed=\")[0-9]+" Test_automation/report/report.xml)
         COVERED=$(grep -oPm1 "(?<=covered=\")[0-9]+" Test_automation/report/report.xml)
         TOTAL=$((MISSED + COVERED))
         PERCENT=$(echo "scale=2; $COVERED*100/$TOTAL" | bc)
