@@ -1,9 +1,9 @@
 name: AI Test & Coverage Check
 on:
   push:
-    branches: [ "test_loc" ]
+    branches: [ "pr2" ]
   pull_request:
-    branches: [ "test_loc" ]
+    branches: [ "pr2" ]
   
 jobs:
   test:
@@ -28,8 +28,8 @@ jobs:
     - name: Detect changed Java files
       id: changes
       run: |
-        git fetch origin test_loc
-        CHANGED=$(git diff --name-only origin/test_loc | grep 'Test_automation/src/.*\.java$' || true)
+        git fetch origin pr2
+        CHANGED=$(git diff --name-only origin/pr2 | grep 'Test_automation/src/.*\.java$' || true)
         echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
     - name: Generate missing test files with EvoSuite
