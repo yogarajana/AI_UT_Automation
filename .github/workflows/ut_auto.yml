@@ -48,7 +48,7 @@ jobs:
     - name: Compile test classes
       run: |
         find src/test/java -name "*.java" > test_sources.txt
-        javac -cp "bin:tools/junit-4.13.2.jar:tools/hamcrest-core-2.2.jar:tools/hamcrest-2.2.jar" -d bin @test_sources.txt
+        javac -cp "bin:tools/evosuite-standalone-runtime-1.2.0.jar:tools/junit-4.13.2.jar:tools/hamcrest-core-2.2.jar:tools/hamcrest-2.2.jar" -d bin @test_sources.txt
 
     - name: Run tests with JaCoCo agent
       run: |
