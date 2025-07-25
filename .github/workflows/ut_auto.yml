@@ -39,6 +39,7 @@ jobs:
           CLASS_PATH=$(echo "$file" | sed 's|Test_automation/src/||')
           CLASS_NAME=$(echo "$CLASS_PATH" | sed 's|/|.|g' | sed 's|.java||')
           TEST_FILE="Test_automation/src/test/java/$(echo "$CLASS_PATH" | sed 's|.java|Test.java|')"
+          echo "Test file name: $TEST_FILE"
           if [ ! -f "$TEST_FILE" ]; then
             echo "Generating test for $CLASS_NAME"
             java -jar Test_automation/tools/evosuite-1.2.0.jar -class $CLASS_NAME -projectCP bin -Dtest_dir=Test_automation/src/test/java
