@@ -53,7 +53,7 @@ jobs:
         if find Test_automation/src/test/java -name "*.java" > test_sources.txt && [ -s test_sources.txt ]; then
           echo "Found test files to compile:"
           cat test_sources.txt
-          javac -cp "bin:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar:Test_automation/tools/hamcrest-2.2.jar" -d bin @test_sources.txt
+          javac -cp "bin:Test_automation/tools/evosuite-standalone-runtime-1.2.0.jar:Test_automation/tools/junit-4.13.2.jar:Test_automation/tools/hamcrest-core-2.2.jar:Test_automation/tools/hamcrest-2.2.jar" -d bin @test_sources.txt
         else
           echo "No test files found. Creating empty file to avoid compilation error."
           touch test_sources.txt
