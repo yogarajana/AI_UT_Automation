@@ -59,6 +59,7 @@ public class Calculate {
         }
 
         System.out.println("Result: " + result);
+        
     }
 }
 
