@@ -38,48 +38,10 @@ jobs:
         for file in ${{ steps.changes.outputs.changed_files }}; do
           CLASS_PATH=$(echo "$file" | sed 's|Test_automation/src/||')
           CLASS_NAME=$(echo "$CLASS_PATH" | sed 's|/|.|g' | sed 's|.java||')
-          PACKAGE_NAME=$(dirname "$CLASS_NAME" | sed 's|/|.|g')
-          CLASS_SIMPLE_NAME=$(basename "$CLASS_NAME")
           TEST_FILE="Test_automation/src/test/java/$(echo "$CLASS_PATH" | sed 's|.java|Test.java|')"
-          TEST_DIR=$(dirname "$TEST_FILE")
-          
-          # Create directories for test file if they don't exist
-          mkdir -p "$TEST_DIR"
-          
           if [ ! -f "$TEST_FILE" ]; then
             echo "Generating test for $CLASS_NAME"
-            # Try to generate test with EvoSuite
             java -jar Test_automation/tools/evosuite-1.2.0.jar -class $CLASS_NAME -projectCP bin -Dtest_dir=Test_automation/src/test/java
-            
-            # Check if EvoSuite successfully created the test
-            if [ ! -f "$TEST_FILE" ]; then
-              echo "EvoSuite failed to generate test for $CLASS_NAME. Creating fallback test."
-              
-              # Create a fallback placeholder test
-              cat > "$TEST_FILE" << EOF
-package $PACKAGE_NAME;
-
-import org.junit.Test;
-import static org.junit.Assert.*;
-
-/**
- * Fallback test for $CLASS_SIMPLE_NAME
- * EvoSuite failed to generate a test, so this is a placeholder.
- */
-public class ${CLASS_SIMPLE_NAME}Test {
-    
-    @Test
-    public void testFallback() {
-        // This is a placeholder test to ensure coverage reports run
-        // Replace with actual tests when possible
-        assertTrue("Placeholder test for $CLASS_SIMPLE_NAME", true);
-    }
-}
-EOF
-              echo "Created fallback test for $CLASS_NAME at $TEST_FILE"
-            else
-              echo "EvoSuite successfully generated test for $CLASS_NAME"
-            fi
           else
             echo "Test already exists for $CLASS_NAME"
           fi
