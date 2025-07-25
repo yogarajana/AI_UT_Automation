@@ -28,6 +28,7 @@ jobs:
     - name: Detect changed Java files
       id: changes
       run: |
+        git fetch origin test_loc
         git fetch origin pr2
         echo "working branch: $GITHUB_REF"
         CHANGED=$(git diff --name-only origin/test_loc...origin/pr2 | grep 'Test_automation/src/.*\.java$' || true)
